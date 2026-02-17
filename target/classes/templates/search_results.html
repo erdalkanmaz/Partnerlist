@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title='Suchergebnisse - Partnerliste Verwaltung', content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="search-page">
+            <h1>Suchergebnisse</h1>
+            
+            <div class="search-form-section">
+                <form method="GET" th:action="@{/search}" class="search-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <select name="field" class="form-control">
+                                <option value="all" th:selected="${searchField == 'all'}">Alle</option>
+                                <option value="company_name" th:selected="${searchField == 'company_name'}">Unternehmensname</option>
+                                <option value="person_name" th:selected="${searchField == 'person_name'}">Personalname</option>
+                                <option value="email" th:selected="${searchField == 'email'}">E-Mail</option>
+                                <option value="telephone" th:selected="${searchField == 'telephone'}">Telefon</option>
+                                <option value="address" th:selected="${searchField == 'address'}">Adresse</option>
+                                <option value="title" th:selected="${searchField == 'title'}">Titel</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-grow">
+                            <input type="text" name="q" class="form-control" 
+                                   placeholder="Suchen..." th:value="${searchTerm}">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Suchen</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div th:if="${searchTerm != null and !searchTerm.isEmpty()}" class="search-results">
+                <div th:if="${companies != null and !companies.isEmpty()}">
+                    <div class="result-section">
+                        <h2>Unternehmen (<span th:text="${companies.size()}"></span>)</h2>
+                        <div class="company-list">
+                            <div th:each="company : ${companies}" class="company-card">
+                                <h3><a th:href="@{/companies/{id}(id=${company.id})}" th:text="${company.name}"></a></h3>
+                                <p><strong>E-Mail:</strong> <span th:text="${company.email}"></span></p>
+                                <p><strong>Web:</strong> <a th:href="${company.webUrl}" th:text="${company.webUrl}" target="_blank"></a></p>
+                                <p><strong>Adresse:</strong> <span th:text="${company.address}"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${contacts != null and !contacts.isEmpty()}">
+                    <div class="result-section">
+                        <h2>Personal (<span th:text="${contacts.size()}"></span>)</h2>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Unternehmen</th>
+                                    <th>Person</th>
+                                    <th>Title</th>
+                                    <th>Telephone</th>
+                                    <th>E-Mail</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="contact : ${contacts}">
+                                    <td><a th:href="@{/companies/{id}(id=${contact.company.id})}" th:text="${contact.company.name}"></a></td>
+                                    <td>
+                                        <a th:if="${contact.id != null}" th:href="@{/contacts/{id}(id=${contact.id})}" th:text="${contact.personName != null ? contact.personName : '-'}"></a>
+                                        <span th:if="${contact.id == null}" th:text="${contact.personName != null ? contact.personName : '-'}"></span>
+                                    </td>
+                                    <td th:text="${contact.title != null ? contact.title : '-'}"></td>
+                                    <td th:text="${contact.telephone != null ? contact.telephone : '-'}"></td>
+                                    <td th:text="${contact.email != null ? contact.email : '-'}"></td>
+                                    <td>
+                                        <a th:if="${contact.id != null}" th:href="@{/contacts/{id}(id=${contact.id})}" class="btn btn-sm btn-info">Details</a>
+                                        <a th:if="${contact.id == null}" th:href="@{/companies/{id}(id=${contact.company.id})}" class="btn btn-sm btn-info">Unternehmen</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div th:if="${(companies == null or companies.isEmpty()) and (contacts == null or contacts.isEmpty())}" class="empty-state">
+                    <p>Keine Suchergebnisse gefunden.</p>
+                </div>
+            </div>
+            
+            <div th:if="${searchTerm == null or searchTerm.isEmpty()}" class="empty-state">
+                <p>Bitte geben Sie einen Suchbegriff ein.</p>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>

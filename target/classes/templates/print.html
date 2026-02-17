@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drucken - Partnerliste</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { margin: 0; padding: 20px; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .company-section {
+            page-break-inside: avoid;
+            margin-bottom: 40px;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        .company-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .info-table th,
+        .info-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .info-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            width: 150px;
+        }
+        .contacts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .contacts-table th,
+        .contacts-table td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .contacts-table th {
+            background-color: #333;
+            color: white;
+        }
+        .contacts-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .no-print {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Drucken</button>
+        <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">Schließen</button>
+    </div>
+    
+    <div class="print-header">
+        <h1>Partnerliste - Unternehmensbericht</h1>
+        <p id="print-date">Erstellungsdatum: </p>
+    </div>
+    
+    <!-- Dinamik format - Seçilen alanlara göre göster -->
+    <div th:each="company : ${companies}" class="company-section">
+        <div class="company-name" th:if="${showCompanyName}" th:text="${company.name}"></div>
+        
+        <table class="info-table" th:if="${showCompanyTelephone or showCompanyFax or showCompanyEmail or showCompanyWeb or showCompanyAddress or showCompanyVatId or showCompanyCourtInfo}">
+            <tr th:if="${showCompanyTelephone}">
+                <th>Telefon:</th>
+                <td th:text="${company.telephone}"></td>
+            </tr>
+            <tr th:if="${showCompanyFax}">
+                <th>Fax:</th>
+                <td th:text="${company.fax}"></td>
+            </tr>
+            <tr th:if="${showCompanyEmail}">
+                <th>E-Mail:</th>
+                <td th:text="${company.email}"></td>
+            </tr>
+            <tr th:if="${showCompanyWeb}">
+                <th>Webadresse:</th>
+                <td th:text="${company.webUrl}"></td>
+            </tr>
+            <tr th:if="${showCompanyAddress}">
+                <th>Adresse:</th>
+                <td th:text="${company.address}"></td>
+            </tr>
+            <tr th:if="${showCompanyVatId and company.vatId != null}">
+                <th>Umsatzsteuer-ID:</th>
+                <td th:text="${company.vatId}"></td>
+            </tr>
+            <tr th:if="${showCompanyCourtInfo and company.courtInfo != null}">
+                <th>Amtsgericht:</th>
+                <td th:text="${company.courtInfo}"></td>
+            </tr>
+            <tr th:if="${company.comment != null}">
+                <th>Kommentar:</th>
+                <td th:text="${company.comment}"></td>
+            </tr>
+        </table>
+        
+        <div th:if="${showContacts and company.contacts != null and !company.contacts.isEmpty()}">
+            <h3>Personal</h3>
+            <table class="contacts-table">
+                <thead>
+                    <tr>
+                        <th th:if="${showContactName}">Person</th>
+                        <th th:if="${showContactTelephone}">Telefon</th>
+                        <th th:if="${showContactEmail}">E-Mail</th>
+                        <th th:if="${showContactAddress}">Adresse</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="contact : ${company.contacts}">
+                        <td th:if="${showContactName}" th:text="${contact.personName != null ? contact.personName : '-'}"></td>
+                        <td th:if="${showContactTelephone}" th:text="${contact.telephone != null ? contact.telephone : '-'}"></td>
+                        <td th:if="${showContactEmail}" th:text="${contact.email != null ? contact.email : '-'}"></td>
+                        <td th:if="${showContactAddress}" th:text="${contact.address != null ? contact.address : company.address}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateElement = document.getElementById('print-date');
+            if (dateElement) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE');
+                dateElement.textContent = 'Erstellungsdatum: ' + dateStr;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${group.id != null ? 'Liste bearbeiten' : 'Neue Liste erstellen'}, content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="form-page">
+            <h1 th:text="${group.id != null ? 'Liste bearbeiten' : 'Neue Liste erstellen'}"></h1>
+
+            <form method="POST" th:action="${group.id != null ? '/lists/' + group.id + '/edit' : '/lists'}" class="main-form">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="form-label">Name der Liste *</label>
+                        <input type="text" name="name" class="form-control" th:value="${group.name}" required
+                               placeholder="z. B. Wichtige Partner 2024">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Unternehmen in dieser Liste</h2>
+                    <p class="form-hint">Wählen Sie die Unternehmen aus, die zu dieser Liste gehören sollen.</p>
+                    <div class="company-list" style="max-height: 400px; overflow-y: auto;">
+                        <div th:each="company : ${allCompanies}" class="company-card" style="padding: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                                <input type="checkbox" name="companyIds" th:value="${company.id}"
+                                       th:checked="${preselectedIds != null and preselectedIds.contains(company.id)}">
+                                <span th:text="${company.name}"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <a th:href="${group.id != null ? '/lists/' + group.id : '/lists'}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </th:block>
+</body>
+</html>

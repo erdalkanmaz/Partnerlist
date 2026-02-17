@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title != null ? title : 'Partnerliste Verwaltung'}">Partnerliste Verwaltung</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <th:block th:fragment="extra_css"></th:block>
+</head>
+<body>
+    <th:block th:fragment="layout(title, content)">
+        <html xmlns:th="http://www.thymeleaf.org" lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="_csrf" th:content="${_csrf?.token}">
+            <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+            <title th:text="${title}">Partnerliste Verwaltung</title>
+            <link rel="stylesheet" th:href="@{/css/style.css}">
+            <th:block th:replace="~{base :: extra_css}"></th:block>
+        </head>
+        <body>
+            <div th:replace="~{base :: navbar}"></div>
+            <main class="main-content">
+                <div th:replace="~{base :: messages}"></div>
+                <th:block th:replace="${content}"></th:block>
+            </main>
+            <script th:src="@{/js/main.js}"></script>
+            <th:block th:replace="~{base :: extra_js}"></th:block>
+        </body>
+        </html>
+    </th:block>
+
+    <th:block th:fragment="navbar">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a th:href="@{/}" class="nav-logo">Partnerliste</a>
+                <ul class="nav-menu">
+                    <li><a th:href="@{/}">Startseite</a></li>
+                    <li><a th:href="@{/companies}">Unternehmensliste</a></li>
+                    <li><a th:href="@{/search}">Suche</a></li>
+                    <li><a th:href="@{/import}">Excel Import</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit" style="background:none;border:none;color:white;cursor:pointer;padding:8px 15px;">
+                                Abmelden
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+                <div class="nav-logo-right">
+                    <img th:src="@{/img/oneit24-white.png}" alt="ONEIT24 Logo" class="nav-logo-image">
+                </div>
+            </div>
+        </nav>
+    </th:block>
+
+    <th:block th:fragment="messages">
+        <div th:if="${message}" th:classappend="'flash-message flash-' + ${messageType != null ? messageType : 'info'}" 
+             class="flash-message">
+            <span th:text="${message}"></span>
+            <span class="flash-close" onclick="this.parentElement.remove()">&times;</span>
+        </div>
+    </th:block>
+
+    <th:block th:fragment="content"></th:block>
+
+    <script th:src="@{/js/main.js}"></script>
+    <th:block th:fragment="extra_js"></th:block>
+</body>
+</html>

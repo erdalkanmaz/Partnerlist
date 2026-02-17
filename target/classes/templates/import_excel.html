@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title='Excel Import - Partnerliste Verwaltung', content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="form-page">
+            <h1>Daten aus Excel laden</h1>
+            
+            <div class="form-section">
+                <h2>Dateiauswahl</h2>
+                <p>Wählen Sie Ihre Excel-Datei aus (.xlsx Format erforderlich)</p>
+                
+                <form method="POST" th:action="@{/import}" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Excel-Datei</label>
+                        <input type="file" name="file" class="form-control file-input-no-name" accept=".xlsx,.xls" required
+                               onchange="document.getElementById('selected-file-name').textContent = this.files.length ? this.files[0].name : '';">
+                        <div id="selected-file-name" style="margin-top:8px; color:#c0392b; font-weight:bold;"></div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Hochladen</button>
+                        <a th:href="@{/companies}" class="btn btn-secondary">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="form-section">
+                <h2>Excel-Format</h2>
+                <p>Ihre Excel-Datei sollte folgende Spalten (Überschriften) enthalten. Groß-/Kleinschreibung ist egal:</p>
+                <ul>
+                    <li><strong>Partner/Agent</strong> (Unternehmensname) - PFLICHT</li>
+                    <li><strong>Web</strong> (Webadresse) - PFLICHT</li>
+                    <li><strong>e-mail</strong> (E-Mail) - PFLICHT</li>
+                    <li><strong>Adress</strong> (Adresse) - PFLICHT</li>
+                    <li><strong>Person</strong> (Personalname) - Optional</li>
+                    <li><strong>Gender, Title, Telephone, Fax</strong> - Optional</li>
+                    <li><strong>Umsatzsteuer-ID, Amtsgericht, Kommentar</strong> - Optional</li>
+                </ul>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>

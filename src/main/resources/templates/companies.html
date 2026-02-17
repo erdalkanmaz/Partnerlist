@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title='Unternehmen - Partnerliste Verwaltung', content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="page-header">
+            <h1>Unternehmensliste</h1>
+            <a th:href="@{/companies/add}" class="btn btn-primary">Neues Unternehmen hinzufügen</a>
+        </div>
+
+        <div class="search-section">
+            <form method="GET" th:action="@{/companies}" class="search-form">
+                <div class="form-row">
+                    <div class="form-group flex-grow">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Unternehmensname suchen..." th:value="${searchTerm}">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Suchen</button>
+                        <a th:if="${searchTerm != null and !searchTerm.isEmpty()}" 
+                           th:href="@{/companies}" class="btn btn-secondary">Zurücksetzen</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="companies-section">
+            <form method="POST" th:action="@{/print}" id="company-select-form">
+                <div class="action-bar">
+                    <div class="selection-controls">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAll()">Alle auswählen</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAll()">Auswahl aufheben</button>
+                        <span id="selected-count">0 Unternehmen ausgewählt</span>
+                    </div>
+                    <div class="format-controls">
+                        <label>Format:</label>
+                        <div class="format-comboboxes">
+                            <!-- Şirket Combobox -->
+                            <div class="format-combobox">
+                                <button type="button" class="combobox-button" onclick="toggleCombobox('company')">
+                                    <span id="company-combobox-label">Unternehmen: Alle</span>
+                                    <span class="combobox-arrow">▼</span>
+                                </button>
+                                <div id="company-combobox-dropdown" class="combobox-dropdown" style="display: none;">
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="alle" checked onchange="updateCompanySelection()">
+                                        Alle
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="name" checked onchange="updateCompanySelection()">
+                                        Name
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="telephone" checked onchange="updateCompanySelection()">
+                                        Telefon
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="fax" checked onchange="updateCompanySelection()">
+                                        Fax
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="email" checked onchange="updateCompanySelection()">
+                                        E-Mail
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="web" checked onchange="updateCompanySelection()">
+                                        Web
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="vatId" checked onchange="updateCompanySelection()">
+                                        Umsatzsteuer-ID
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="courtInfo" checked onchange="updateCompanySelection()">
+                                        Amtsgericht
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="company" data-field="address" checked onchange="updateCompanySelection()">
+                                        Adresse
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Personel Combobox -->
+                            <div class="format-combobox">
+                                <button type="button" class="combobox-button" onclick="toggleCombobox('contact')">
+                                    <span id="contact-combobox-label">Personal: Keine Auswahl</span>
+                                    <span class="combobox-arrow">▼</span>
+                                </button>
+                                <div id="contact-combobox-dropdown" class="combobox-dropdown" style="display: none;">
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="contact" data-field="alle" onchange="updateContactSelection()">
+                                        Alle
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="contact" data-field="name" onchange="updateContactSelection()">
+                                        Name
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="contact" data-field="telephone" onchange="updateContactSelection()">
+                                        Telefon
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="contact" data-field="email" onchange="updateContactSelection()">
+                                        E-Mail
+                                    </label>
+                                    <label class="combobox-checkbox-label">
+                                        <input type="checkbox" class="format-checkbox" data-type="contact" data-field="address" onchange="updateContactSelection()">
+                                        Adresse
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Backend'e gönderilecek format JSON -->
+                        <input type="hidden" id="format-input" name="format" value='{"company":["alle","name","telephone","fax","email","web","vatId","courtInfo","address"],"contact":[]}'>
+                    </div>
+                    <div class="action-controls">
+                        <button type="submit" name="action" value="print" class="btn btn-success">Drucken</button>
+                        <button type="submit" name="action" value="excel" class="btn btn-primary">Excel exportieren</button>
+                        <button type="submit" name="action" value="csv" class="btn btn-primary">CSV exportieren</button>
+                        <button type="button" id="focus-selection-btn" class="btn btn-secondary" onclick="focusSelection()">Nur Auswahl anzeigen</button>
+                        <button type="button" id="show-all-btn" class="btn btn-light" style="display: none;" onclick="showAllCompanies()">Gesamtliste anzeigen</button>
+                    </div>
+                </div>
+                
+                <div class="company-list">
+                    <div th:if="${companies == null or companies.isEmpty()}" class="empty-state">
+                        <p>Noch keine Unternehmensregistrierung vorhanden.</p>
+                        <a th:href="@{/companies/add}" class="btn btn-primary">Erstes Unternehmen hinzufügen</a>
+                    </div>
+                    
+                    <div th:each="company : ${companies}" class="company-card">
+                        <div class="company-checkbox">
+                            <input type="checkbox" name="companyIds" th:value="${company.id}" 
+                                   class="company-checkbox-input" onchange="updateSelectedCount()">
+                        </div>
+                        <div class="company-info">
+                            <h3>
+                                <a th:href="@{/companies/{id}(id=${company.id})}" th:text="${company.name}"></a>
+                            </h3>
+                        </div>
+                        <div class="company-actions">
+                            <a th:href="@{/companies/{id}(id=${company.id})}" class="btn btn-sm btn-info">Details</a>
+                            <a th:href="@{/companies/{id}/edit(id=${company.id})}" class="btn btn-sm btn-warning">Bearbeiten</a>
+                            <button type="button" class="btn btn-sm btn-danger" 
+                                    th:onclick="'if(confirm(\'Sind Sie sicher, dass Sie dieses Unternehmen löschen möchten?\')) { deleteCompany(' + ${company.id} + '); }'">
+                                Löschen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            function updateSelectedCount() {
+                const checkboxes = document.querySelectorAll('.company-checkbox-input:checked');
+                const count = checkboxes.length;
+                document.getElementById('selected-count').textContent = count + ' Unternehmen ausgewählt';
+            }
+            
+            function selectAll() {
+                const checkboxes = document.querySelectorAll('.company-checkbox-input');
+                checkboxes.forEach(cb => cb.checked = true);
+                updateSelectedCount();
+            }
+            
+            function deselectAll() {
+                const checkboxes = document.querySelectorAll('.company-checkbox-input');
+                checkboxes.forEach(cb => cb.checked = false);
+                updateSelectedCount();
+            }
+            
+            // Sadece seçilen şirketlerden oluşan geçici bir çalışma listesi göster
+            function focusSelection() {
+                const selected = document.querySelectorAll('.company-checkbox-input:checked');
+                if (selected.length === 0) {
+                    alert('Bitte wählen Sie mindestens ein Unternehmen aus.');
+                    return;
+                }
+                
+                document.querySelectorAll('.company-card').forEach(card => {
+                    const cb = card.querySelector('.company-checkbox-input');
+                    if (!cb.checked) {
+                        card.dataset.hiddenByFocus = 'true';
+                        card.style.display = 'none';
+                    }
+                });
+                
+                const focusBtn = document.getElementById('focus-selection-btn');
+                const showAllBtn = document.getElementById('show-all-btn');
+                if (focusBtn) focusBtn.style.display = 'none';
+                if (showAllBtn) showAllBtn.style.display = 'inline-block';
+            }
+            
+            // Geçici listeden çık ve tüm şirketleri tekrar göster
+            function showAllCompanies() {
+                document.querySelectorAll('.company-card[data-hidden-by-focus="true"]').forEach(card => {
+                    card.style.display = '';
+                    card.removeAttribute('data-hidden-by-focus');
+                });
+                
+                const focusBtn = document.getElementById('focus-selection-btn');
+                const showAllBtn = document.getElementById('show-all-btn');
+                if (focusBtn) focusBtn.style.display = 'inline-block';
+                if (showAllBtn) showAllBtn.style.display = 'none';
+            }
+            
+            // Sayfa yüklendiğinde geçici liste durumunu sıfırla (güvenlik için)
+            // Bu, sayfa yenilendiğinde veya başka sayfadan geri dönüldüğünde
+            // geçici liste durumunun tamamen temizlendiğini garanti eder
+            document.addEventListener('DOMContentLoaded', function() {
+                // Tüm gizlenmiş kartları göster ve data attribute'ları temizle
+                document.querySelectorAll('.company-card[data-hidden-by-focus="true"]').forEach(card => {
+                    card.style.display = '';
+                    card.removeAttribute('data-hidden-by-focus');
+                });
+                
+                // Buton durumlarını sıfırla
+                const focusBtn = document.getElementById('focus-selection-btn');
+                const showAllBtn = document.getElementById('show-all-btn');
+                if (focusBtn) focusBtn.style.display = 'inline-block';
+                if (showAllBtn) showAllBtn.style.display = 'none';
+                
+                // Seçim sayacını güncelle
+                updateSelectedCount();
+            });
+
+            function deleteCompany(companyId) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/companies/' + companyId + '/delete';
+                
+                // CSRF token'ı meta tag'den al
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_csrf';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+            
+            // Butonlara click event listener ekle
+            document.querySelectorAll('button[type="submit"][name="action"]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const form = document.getElementById('company-select-form');
+                    const action = this.value;
+                    const format = document.getElementById('format-input').value;
+                    
+                    if (action === 'excel' || action === 'csv') {
+                        e.preventDefault();
+                        
+                        // Yeni form oluştur
+                        const newForm = document.createElement('form');
+                        newForm.method = 'POST';
+                        newForm.action = '/export';
+                        
+                        // Checkbox'ları ekle
+                        const checkboxes = document.querySelectorAll('.company-checkbox-input:checked');
+                        checkboxes.forEach(cb => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'companyIds';
+                            input.value = cb.value;
+                            newForm.appendChild(input);
+                        });
+                        
+                        // Action ve format ekle
+                        const actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        actionInput.value = action;
+                        newForm.appendChild(actionInput);
+                        
+                        const formatInputHidden = document.createElement('input');
+                        formatInputHidden.type = 'hidden';
+                        formatInputHidden.name = 'format';
+                        formatInputHidden.value = format;
+                        newForm.appendChild(formatInputHidden);
+                        
+                        document.body.appendChild(newForm);
+                        newForm.submit();
+                    } else if (action === 'print') {
+                        // Print için format parametresini ekle
+                        const formatInputHidden = document.createElement('input');
+                        formatInputHidden.type = 'hidden';
+                        formatInputHidden.name = 'format';
+                        formatInputHidden.value = format;
+                        form.appendChild(formatInputHidden);
+                    }
+                });
+            });
+            
+            document.addEventListener('DOMContentLoaded', updateSelectedCount);
+            
+            // Combobox aç/kapa
+            function toggleCombobox(type) {
+                const dropdown = document.getElementById(type + '-combobox-dropdown');
+                const isOpen = dropdown.style.display !== 'none';
+                
+                // Diğer combobox'ları kapat
+                document.getElementById('company-combobox-dropdown').style.display = 'none';
+                document.getElementById('contact-combobox-dropdown').style.display = 'none';
+                
+                // Bu combobox'ı aç/kapa
+                dropdown.style.display = isOpen ? 'none' : 'block';
+            }
+            
+            // Dışarı tıklandığında combobox'ları kapat
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.format-combobox')) {
+                    document.getElementById('company-combobox-dropdown').style.display = 'none';
+                    document.getElementById('contact-combobox-dropdown').style.display = 'none';
+                }
+            });
+            
+            // Şirket seçimlerini güncelle
+            function updateCompanySelection() {
+                const checkboxes = document.querySelectorAll('.format-checkbox[data-type="company"]');
+                const alleCheckbox = document.querySelector('.format-checkbox[data-type="company"][data-field="alle"]');
+                const selectedFields = [];
+                
+                // "Alle" seçildiyse, diğer tüm checkbox'ları işaretle
+                if (alleCheckbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== alleCheckbox) {
+                            cb.checked = true;
+                        }
+                    });
+                    selectedFields.push('alle', 'name', 'telephone', 'fax', 'email', 'web', 'vatId', 'courtInfo', 'address');
+                } else {
+                    // "Alle" seçili değilse, seçili olanları topla
+                    checkboxes.forEach(cb => {
+                        if (cb.checked && cb !== alleCheckbox) {
+                            selectedFields.push(cb.dataset.field);
+                        }
+                    });
+                    
+                    // Hiçbiri seçilmediyse, "alle"yi zorla seç
+                    if (selectedFields.length === 0) {
+                        alleCheckbox.checked = true;
+                        selectedFields.push('alle', 'name', 'telephone', 'fax', 'email', 'web', 'vatId', 'courtInfo', 'address');
+                        checkboxes.forEach(cb => {
+                            if (cb !== alleCheckbox) {
+                                cb.checked = true;
+                            }
+                        });
+                    }
+                }
+                
+                // Label'ı güncelle
+                const label = document.getElementById('company-combobox-label');
+                if (alleCheckbox.checked) {
+                    label.textContent = 'Unternehmen: Alle';
+                } else {
+                    label.textContent = 'Unternehmen: ' + selectedFields.length + ' ausgewählt';
+                }
+                
+                updateFormatJSON();
+            }
+            
+            // Personel seçimlerini güncelle
+            function updateContactSelection() {
+                const checkboxes = document.querySelectorAll('.format-checkbox[data-type="contact"]');
+                const alleCheckbox = document.querySelector('.format-checkbox[data-type="contact"][data-field="alle"]');
+                const selectedFields = [];
+                
+                // "Alle" seçildiyse, diğer tüm checkbox'ları işaretle
+                if (alleCheckbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== alleCheckbox) {
+                            cb.checked = true;
+                        }
+                    });
+                    selectedFields.push('alle', 'name', 'telephone', 'email', 'address');
+                } else {
+                    // "Alle" seçili değilse, seçili olanları topla
+                    checkboxes.forEach(cb => {
+                        if (cb.checked && cb !== alleCheckbox) {
+                            selectedFields.push(cb.dataset.field);
+                        }
+                    });
+                    
+                    // Hiçbiri seçilmediyse, hiçbir şey yapma (boş bırak)
+                    // Kullanıcı personel bilgilerini göstermek istemiyor
+                }
+                
+                // Label'ı güncelle
+                const label = document.getElementById('contact-combobox-label');
+                if (selectedFields.length === 0) {
+                    label.textContent = 'Personal: Keine Auswahl';
+                } else if (alleCheckbox.checked) {
+                    label.textContent = 'Personal: Alle';
+                } else {
+                    label.textContent = 'Personal: ' + selectedFields.length + ' ausgewählt';
+                }
+                
+                updateFormatJSON();
+            }
+            
+            // Format JSON'ını güncelle
+            function updateFormatJSON() {
+                const companyFields = [];
+                const contactFields = [];
+                
+                document.querySelectorAll('.format-checkbox[data-type="company"]').forEach(cb => {
+                    if (cb.checked) {
+                        companyFields.push(cb.dataset.field);
+                    }
+                });
+                
+                document.querySelectorAll('.format-checkbox[data-type="contact"]').forEach(cb => {
+                    if (cb.checked) {
+                        contactFields.push(cb.dataset.field);
+                    }
+                });
+                
+                const formatJSON = {
+                    company: companyFields,
+                    contact: contactFields
+                };
+                
+                const hidden = document.getElementById('format-input');
+                if (hidden) {
+                    hidden.value = JSON.stringify(formatJSON);
+                }
+            }
+            
+            // Sayfa yüklendiğinde varsayılan formatı ayarla
+            document.addEventListener('DOMContentLoaded', function() {
+                updateFormatJSON();
+            });
+        </script>
+    </th:block>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${company != null ? 'Unternehmen bearbeiten' : 'Neues Unternehmen hinzufügen'}, content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="form-page">
+            <h1 th:text="${company != null and company.id != null ? 'Unternehmen bearbeiten' : 'Neues Unternehmen hinzufügen'}"></h1>
+            
+            <form method="POST" th:action="${company != null and company.id != null ? '/companies/' + company.id + '/edit' : '/companies/add'}" class="main-form" id="company-form">
+                <input type="hidden" name="duplicateWarningShown" th:value="${duplicateWarningShown}">
+                <div class="form-section">
+                    <h2>Pflichtangaben</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Unternehmensname *</label>
+                        <input type="text" name="name" class="form-control" th:value="${company != null ? company.name : ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Webadresse *</label>
+                        <input type="url" name="webUrl" class="form-control" th:value="${company != null ? company.webUrl : ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">E-Mail *</label>
+                        <input type="email" name="email" class="form-control" th:value="${company != null ? company.email : ''}" required
+                               onblur="this.value = this.value.trim()" 
+                               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Adresse *</label>
+                        <textarea name="address" class="form-control" rows="3" required th:text="${company != null ? company.address : ''}"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h2>Optionale Unternehmensinformationen</h2>
+
+                    <div class="form-group">
+                        <label class="form-label">Umsatzsteuer-ID</label>
+                        <input type="text" name="vatId" class="form-control" th:value="${company != null ? company.vatId : ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amtsgericht</label>
+                        <input type="text" name="courtInfo" class="form-control" th:value="${company != null ? company.courtInfo : ''}">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Firmentelefon</label>
+                            <input type="text" name="telephone" class="form-control" th:value="${company != null ? company.telephone : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Fax</label>
+                            <input type="text" name="fax" class="form-control" th:value="${company != null ? company.fax : ''}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Kommentar</label>
+                        <textarea name="comment" class="form-control" rows="3" th:text="${company != null ? company.comment : ''}"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Erste Kontaktperson (optional)</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nr.</label>
+                            <input type="number" name="contactNumber" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select name="contactGender" class="form-control">
+                                <option value="">Bitte wählen</option>
+                                <option value="Herr">Herr</option>
+                                <option value="Frau">Frau</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Person</label>
+                        <input type="text" name="contactPersonName" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Titel</label>
+                        <input type="text" name="contactTitle" class="form-control">
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Kontaktinformationen der Person</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Telefon</label>
+                                <input type="text" name="contactTelephone" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Fax</label>
+                                <input type="text" name="contactFax" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">E-Mail</label>
+                            <input type="email" name="contactEmail" class="form-control"
+                                   onblur="this.value = this.value.trim()" 
+                                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Adresse (Niederlassung)</label>
+                            <small class="form-hint">Wenn leer gelassen, wird die Unternehmensadresse verwendet</small>
+                            <textarea name="contactAddress" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <a th:href="${company != null and company.id != null ? '/companies/' + company.id : '/companies'}"
+                       class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+            
+            <!-- Dubletten-Warnung Modal -->
+            <div id="duplicate-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+                <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; max-width:600px; width:90%; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                    <h2 style="margin-top:0;">Mögliche Dublette gefunden</h2>
+                    <p id="duplicate-message" style="margin-bottom:20px;"></p>
+                    <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary" id="duplicate-cancel-btn">Abbrechen</button>
+                        <button type="button" class="btn btn-primary" id="duplicate-confirm-btn">Speichern</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script th:inline="javascript">
+        /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function() {
+                var hasDuplicates = /*[[${duplicateCompanies != null and !duplicateCompanies.isEmpty()}]]*/ false;
+                if (!hasDuplicates) {
+                    return;
+                }
+                var hasExact = /*[[${hasExactDuplicate != null ? hasExactDuplicate : false}]]*/ false;
+                var hasPartial = /*[[${hasPartialDuplicate != null ? hasPartialDuplicate : false}]]*/ false;
+                
+                var message;
+                if (hasExact && !hasPartial) {
+                    message = 'Es existiert bereits ein identischer Unternehmenseintrag mit denselben Daten.\nSie können den Eintrag dennoch speichern oder die Eingaben anpassen bzw. abbrechen.';
+                } else if (!hasExact && hasPartial) {
+                    message = 'Es existiert bereits ein Unternehmen mit demselben Namen, bei dem jedoch einige Daten abweichen.\nBitte prüfen Sie die Einträge und passen Sie die Daten ggf. an.';
+                } else {
+                    message = 'Es wurden ähnliche Unternehmenseinträge gefunden.\nBitte prüfen Sie die vorhandenen Einträge.';
+                }
+                
+                var modal = document.getElementById('duplicate-modal');
+                var messageEl = document.getElementById('duplicate-message');
+                var cancelBtn = document.getElementById('duplicate-cancel-btn');
+                var confirmBtn = document.getElementById('duplicate-confirm-btn');
+                var form = document.getElementById('company-form');
+                
+                if (modal && messageEl && cancelBtn && confirmBtn && form) {
+                    messageEl.textContent = message;
+                    modal.style.display = 'flex';
+                    
+                    cancelBtn.onclick = function() {
+                        modal.style.display = 'none';
+                        // Form üzerinde kalır, kullanıcı manuel olarak düzenleyebilir veya Abbrechen'e basabilir.
+                    };
+                    
+                    confirmBtn.onclick = function() {
+                        // Uyarının gösterildiğini işaretle ve formu tekrar gönder
+                        var hidden = form.querySelector('input[name="duplicateWarningShown"]');
+                        if (!hidden) {
+                            hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'duplicateWarningShown';
+                            form.appendChild(hidden);
+                        }
+                        hidden.value = 'true';
+                        modal.style.display = 'none';
+                        form.submit();
+                    };
+                }
+            });
+        /*]]>*/
+        </script>
+        
+        <script>
+            // Form gönderilmeden önce e-posta alanlarını trim et
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('.main-form');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        const emailInput = form.querySelector('input[name="email"]');
+                        if (emailInput && emailInput.value) {
+                            emailInput.value = emailInput.value.trim();
+                        }
+                        
+                        const contactEmailInput = form.querySelector('input[name="contactEmail"]');
+                        if (contactEmailInput && contactEmailInput.value) {
+                            contactEmailInput.value = contactEmailInput.value.trim();
+                        }
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html>

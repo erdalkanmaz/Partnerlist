@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${company.name + ' - Partnerliste Verwaltung'}, content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="company-detail-page">
+            <div class="page-header">
+                <h1 th:text="${company.name}"></h1>
+                <div class="header-actions">
+                    <a th:href="@{/companies/{id}/edit(id=${company.id})}" class="btn btn-warning">Bearbeiten</a>
+                    <a th:href="@{/print?companyId={id}(id=${company.id})}" class="btn btn-success" target="_blank">Drucken</a>
+                    <a th:href="@{/companies}" class="btn btn-secondary">Zurück</a>
+                </div>
+            </div>
+            
+            <div class="company-info">
+                <div class="info-section">
+                    <h2>Unternehmensinformationen</h2>
+                    <table class="info-table">
+                        <tr th:if="${company.telephone != null}">
+                            <th>Telefon:</th>
+                            <td th:text="${company.telephone}"></td>
+                        </tr>
+                        <tr th:if="${company.fax != null}">
+                            <th>Fax:</th>
+                            <td th:text="${company.fax}"></td>
+                        </tr>
+                        <tr>
+                            <th>E-Mail:</th>
+                            <td th:text="${company.email}"></td>
+                        </tr>
+                        <tr>
+                            <th>Webadresse:</th>
+                            <td><a th:href="${company.webUrl}" th:text="${company.webUrl}" target="_blank"></a></td>
+                        </tr>
+                        <tr>
+                            <th>Adresse:</th>
+                            <td th:text="${company.address}"></td>
+                        </tr>
+                        <tr th:if="${company.vatId != null}">
+                            <th>Umsatzsteuer-ID:</th>
+                            <td th:text="${company.vatId}"></td>
+                        </tr>
+                        <tr th:if="${company.courtInfo != null}">
+                            <th>Amtsgericht:</th>
+                            <td th:text="${company.courtInfo}"></td>
+                        </tr>
+                        <tr th:if="${company.comment != null}">
+                            <th>Kommentar:</th>
+                            <td th:text="${company.comment}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="contacts-section">
+                <div class="section-header">
+                    <h2>Personal (<span th:text="${company.contacts != null ? company.contacts.size() : 0}"></span>)</h2>
+                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Neues Personal hinzufügen</a>
+                </div>
+                
+                <div th:if="${company.contacts != null and !company.contacts.isEmpty()}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Gender</th>
+                                <th>Person</th>
+                                <th>Titel</th>
+                                <th>Telefon</th>
+                                <th>Fax</th>
+                                <th>E-Mail</th>
+                                <th>Adresse</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="contact : ${company.contacts}">
+                                <td th:text="${contact.gender != null ? contact.gender : '-'}"></td>
+                                <td th:text="${contact.personName != null ? contact.personName : '-'}"></td>
+                                <td th:text="${contact.title != null ? contact.title : '-'}"></td>
+                                <td th:text="${contact.telephone != null ? contact.telephone : '-'}"></td>
+                                <td th:text="${contact.fax != null ? contact.fax : '-'}"></td>
+                                <td th:text="${contact.email != null ? contact.email : '-'}"></td>
+                                <td th:text="${contact.address != null ? contact.address : company.address}"></td>
+                                <td>
+                                    <a th:href="@{/contacts/{id}/edit(id=${contact.id})}" class="btn btn-sm btn-warning">Bearbeiten</a>
+                                    <form method="POST" th:action="@{/contacts/{id}/delete(id=${contact.id})}" 
+                                          style="display:inline;" onsubmit="return confirm('Sind Sie sicher, dass Sie dieses Personal löschen möchten?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div th:if="${company.contacts == null or company.contacts.isEmpty()}" class="empty-state">
+                    <p>Keine Personalaufzeichnungen für dieses Unternehmen vorhanden.</p>
+                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Erstes Personal hinzufügen</a>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>

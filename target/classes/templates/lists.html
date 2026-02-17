@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title='Gespeicherte Listen - Partnerliste', content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="page-header">
+            <h1>Gespeicherte Listen</h1>
+            <a th:href="@{/lists/new}" class="btn btn-primary">Neue Liste erstellen</a>
+        </div>
+
+        <p class="form-hint">Erstellen Sie aus der Unternehmensliste eine Auswahl und speichern Sie diese als eigene Liste. Listen können Sie später drucken oder exportieren.</p>
+
+        <div class="companies-section" style="margin-top: 20px;">
+            <div th:if="${groups == null or groups.isEmpty()}" class="empty-state">
+                <p>Noch keine gespeicherte Liste vorhanden.</p>
+                <a th:href="@{/companies}" class="btn btn-primary">Unternehmensliste öffnen</a>
+                <span> und Unternehmen auswählen, dann „Als Liste speichern“ wählen.</span>
+            </div>
+
+            <div th:each="group : ${groups}" class="company-card">
+                <div class="company-info" style="flex: 1;">
+                    <h3>
+                        <a th:href="@{/lists/{id}(id=${group.id})}" th:text="${group.name}"></a>
+                    </h3>
+                    <p class="company-details" th:if="${group.companies != null}">
+                        <span th:text="${group.companies.size()} + ' Unternehmen'"></span>
+                    </p>
+                </div>
+                <div class="company-actions">
+                    <a th:href="@{/lists/{id}(id=${group.id})}" class="btn btn-sm btn-info">Öffnen</a>
+                    <a th:href="@{/lists/{id}/edit(id=${group.id})}" class="btn btn-sm btn-warning">Bearbeiten</a>
+                    <form th:action="@{/lists/{id}/delete(id=${group.id})}" method="post" style="display: inline;"
+                          onsubmit="return confirm('Diese Liste wirklich löschen?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>

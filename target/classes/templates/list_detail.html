@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${group.name + ' - Partnerliste'}, content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="page-header">
+            <h1 th:text="${group.name}"></h1>
+            <div class="header-actions">
+                <a th:href="@{/lists/{id}/edit(id=${group.id})}" class="btn btn-warning">Liste bearbeiten</a>
+                <a th:href="@{/lists}" class="btn btn-secondary">Zurück zu Gespeicherte Listen</a>
+            </div>
+        </div>
+
+        <div class="companies-section">
+            <form method="POST" th:action="@{/print}" id="company-select-form">
+                <div class="action-bar">
+                    <div class="selection-controls">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAll()">Alle auswählen</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAll()">Auswahl aufheben</button>
+                        <span id="selected-count">0 Unternehmen ausgewählt</span>
+                    </div>
+                    <div class="format-controls">
+                        <label>Format:</label>
+                        <div class="format-comboboxes">
+                            <div class="format-combobox">
+                                <button type="button" class="combobox-button" onclick="toggleCombobox('company')">
+                                    <span id="company-combobox-label">Unternehmen: Alle</span>
+                                    <span class="combobox-arrow">▼</span>
+                                </button>
+                                <div id="company-combobox-dropdown" class="combobox-dropdown" style="display: none;">
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="alle" checked onchange="updateCompanySelection()"> Alle</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="name" checked onchange="updateCompanySelection()"> Name</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="telephone" checked onchange="updateCompanySelection()"> Telefon</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="fax" checked onchange="updateCompanySelection()"> Fax</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="email" checked onchange="updateCompanySelection()"> E-Mail</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="web" checked onchange="updateCompanySelection()"> Web</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="vatId" checked onchange="updateCompanySelection()"> Umsatzsteuer-ID</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="courtInfo" checked onchange="updateCompanySelection()"> Amtsgericht</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="company" data-field="address" checked onchange="updateCompanySelection()"> Adresse</label>
+                                </div>
+                            </div>
+                            <div class="format-combobox">
+                                <button type="button" class="combobox-button" onclick="toggleCombobox('contact')">
+                                    <span id="contact-combobox-label">Personal: Keine Auswahl</span>
+                                    <span class="combobox-arrow">▼</span>
+                                </button>
+                                <div id="contact-combobox-dropdown" class="combobox-dropdown" style="display: none;">
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="contact" data-field="alle" onchange="updateContactSelection()"> Alle</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="contact" data-field="name" onchange="updateContactSelection()"> Name</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="contact" data-field="telephone" onchange="updateContactSelection()"> Telefon</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="contact" data-field="email" onchange="updateContactSelection()"> E-Mail</label>
+                                    <label class="combobox-checkbox-label"><input type="checkbox" class="format-checkbox" data-type="contact" data-field="address" onchange="updateContactSelection()"> Adresse</label>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="format-input" name="format" value='{"company":["alle","name","telephone","fax","email","web","vatId","courtInfo","address"],"contact":[]}'>
+                    </div>
+                    <div class="action-controls">
+                        <button type="submit" name="action" value="print" class="btn btn-success">Drucken</button>
+                        <button type="submit" name="action" value="excel" class="btn btn-primary">Excel exportieren</button>
+                        <button type="submit" name="action" value="csv" class="btn btn-primary">CSV exportieren</button>
+                    </div>
+                </div>
+
+                <div class="company-list">
+                    <div th:if="${companies == null or companies.isEmpty()}" class="empty-state">
+                        <p>In dieser Liste sind noch keine Unternehmen. Liste bearbeiten und Unternehmen hinzufügen.</p>
+                        <a th:href="@{/lists/{id}/edit(id=${group.id})}" class="btn btn-primary">Liste bearbeiten</a>
+                    </div>
+                    <div th:each="company : ${companies}" class="company-card">
+                        <div class="company-checkbox">
+                            <input type="checkbox" name="companyIds" th:value="${company.id}" class="company-checkbox-input" onchange="updateSelectedCount()">
+                        </div>
+                        <div class="company-info">
+                            <h3>
+                                <a th:href="@{/companies/{id}(id=${company.id})}" th:text="${company.name}"></a>
+                            </h3>
+                        </div>
+                        <div class="company-actions">
+                            <a th:href="@{/companies/{id}(id=${company.id})}" class="btn btn-sm btn-info">Details</a>
+                            <a th:href="@{/companies/{id}/edit(id=${company.id})}" class="btn btn-sm btn-warning">Bearbeiten</a>
+                            <button type="button" class="btn btn-sm btn-danger" th:onclick="'if(confirm(\'Unternehmen wirklich löschen?\')) { deleteCompany(' + ${company.id} + '); }'">Löschen</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            function updateSelectedCount() {
+                var checkboxes = document.querySelectorAll('.company-checkbox-input:checked');
+                document.getElementById('selected-count').textContent = checkboxes.length + ' Unternehmen ausgewählt';
+            }
+            function selectAll() {
+                document.querySelectorAll('.company-checkbox-input').forEach(function(cb) { cb.checked = true; });
+                updateSelectedCount();
+            }
+            function deselectAll() {
+                document.querySelectorAll('.company-checkbox-input').forEach(function(cb) { cb.checked = false; });
+                updateSelectedCount();
+            }
+            function deleteCompany(companyId) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/companies/' + companyId + '/delete';
+                var csrf = document.querySelector('meta[name="_csrf"]');
+                if (csrf) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden'; input.name = '_csrf'; input.value = csrf.getAttribute('content');
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+            document.querySelectorAll('button[type="submit"][name="action"]').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    var form = document.getElementById('company-select-form');
+                    var action = this.value;
+                    var format = document.getElementById('format-input').value;
+                    if (action === 'excel' || action === 'csv') {
+                        e.preventDefault();
+                        var f = document.createElement('form');
+                        f.method = 'POST';
+                        f.action = '/export';
+                        document.querySelectorAll('.company-checkbox-input:checked').forEach(function(cb) {
+                            var i = document.createElement('input');
+                            i.type = 'hidden'; i.name = 'companyIds'; i.value = cb.value;
+                            f.appendChild(i);
+                        });
+                        var i1 = document.createElement('input'); i1.type = 'hidden'; i1.name = 'action'; i1.value = action; f.appendChild(i1);
+                        var i2 = document.createElement('input'); i2.type = 'hidden'; i2.name = 'format'; i2.value = format; f.appendChild(i2);
+                        document.body.appendChild(f);
+                        f.submit();
+                    } else if (action === 'print') {
+                        var i = document.createElement('input');
+                        i.type = 'hidden'; i.name = 'format'; i.value = format;
+                        form.appendChild(i);
+                    }
+                });
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.format-combobox')) {
+                    document.getElementById('company-combobox-dropdown').style.display = 'none';
+                    document.getElementById('contact-combobox-dropdown').style.display = 'none';
+                }
+            });
+            function toggleCombobox(type) {
+                var dropdown = document.getElementById(type + '-combobox-dropdown');
+                var isOpen = dropdown.style.display !== 'none';
+                document.getElementById('company-combobox-dropdown').style.display = 'none';
+                document.getElementById('contact-combobox-dropdown').style.display = 'none';
+                dropdown.style.display = isOpen ? 'none' : 'block';
+            }
+            function updateCompanySelection() {
+                var checkboxes = document.querySelectorAll('.format-checkbox[data-type="company"]');
+                var alle = document.querySelector('.format-checkbox[data-type="company"][data-field="alle"]');
+                var fields = [];
+                if (alle.checked) {
+                    checkboxes.forEach(function(cb) { if (cb !== alle) cb.checked = true; });
+                    fields = ['alle','name','telephone','fax','email','web','vatId','courtInfo','address'];
+                } else {
+                    checkboxes.forEach(function(cb) { if (cb.checked && cb !== alle) fields.push(cb.dataset.field); });
+                    if (fields.length === 0) { alle.checked = true; checkboxes.forEach(function(cb) { if (cb !== alle) cb.checked = true; }); fields = ['alle','name','telephone','fax','email','web','vatId','courtInfo','address']; }
+                }
+                document.getElementById('company-combobox-label').textContent = alle.checked ? 'Unternehmen: Alle' : 'Unternehmen: ' + fields.length + ' ausgewählt';
+                updateFormatJSON();
+            }
+            function updateContactSelection() {
+                var checkboxes = document.querySelectorAll('.format-checkbox[data-type="contact"]');
+                var alle = document.querySelector('.format-checkbox[data-type="contact"][data-field="alle"]');
+                var fields = [];
+                if (alle.checked) {
+                    checkboxes.forEach(function(cb) { if (cb !== alle) cb.checked = true; });
+                    fields = ['alle','name','telephone','email','address'];
+                } else {
+                    checkboxes.forEach(function(cb) { if (cb.checked && cb !== alle) fields.push(cb.dataset.field); });
+                }
+                var label = document.getElementById('contact-combobox-label');
+                label.textContent = fields.length === 0 ? 'Personal: Keine Auswahl' : (alle.checked ? 'Personal: Alle' : 'Personal: ' + fields.length + ' ausgewählt');
+                updateFormatJSON();
+            }
+            function updateFormatJSON() {
+                var companyFields = [], contactFields = [];
+                document.querySelectorAll('.format-checkbox[data-type="company"]').forEach(function(cb) { if (cb.checked) companyFields.push(cb.dataset.field); });
+                document.querySelectorAll('.format-checkbox[data-type="contact"]').forEach(function(cb) { if (cb.checked) contactFields.push(cb.dataset.field); });
+                document.getElementById('format-input').value = JSON.stringify({ company: companyFields, contact: contactFields });
+            }
+            document.addEventListener('DOMContentLoaded', function() { updateSelectedCount(); updateFormatJSON(); });
+        </script>
+    </th:block>
+</body>
+</html>

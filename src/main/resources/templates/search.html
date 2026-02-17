@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title='Suche - Partnerliste Verwaltung', content=~{::content})}">
+<body>
+    <th:block th:fragment="content">
+        <div class="search-page">
+            <h1>Suche</h1>
+            
+            <form method="GET" th:action="@{/search}" class="search-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <select name="field" class="form-control">
+                            <option value="all">Alle</option>
+                            <option value="company_name">Unternehmensname</option>
+                            <option value="person_name">Personalname</option>
+                            <option value="email">E-Mail</option>
+                            <option value="telephone">Telefon</option>
+                            <option value="address">Adresse</option>
+                            <option value="title">Titel</option>
+                        </select>
+                    </div>
+                    <div class="form-group flex-grow">
+                        <input type="text" name="q" class="form-control" placeholder="Suchen...">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Suchen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </th:block>
+</body>
+</html>
