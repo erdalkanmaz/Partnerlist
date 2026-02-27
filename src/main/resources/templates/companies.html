@@ -4,19 +4,31 @@
     <th:block th:fragment="content">
         <div class="page-header">
             <h1>Unternehmensliste</h1>
-            <a th:href="@{/companies/add}" class="btn btn-primary">Neues Unternehmen hinzufügen</a>
+            <div class="header-actions">
+                <a th:href="@{/companies/add}" class="btn btn-primary">Neuer Partner</a>
+                <a th:href="@{/companies/add(type=${'KUNDE'})}" class="btn btn-secondary">Neuer Kunde</a>
+                <a th:href="@{/companies/add(type=${'DIENSTLEISTER'})}" class="btn btn-secondary">Neuer Dienstleister</a>
+            </div>
         </div>
-
+    
         <div class="search-section">
             <form method="GET" th:action="@{/companies}" class="search-form">
                 <div class="form-row">
+                    <div class="form-group">
+                        <select name="type" class="form-control">
+                            <option value="" th:selected="${selectedType == null or selectedType == ''}">Alle Gruppen</option>
+                            <option value="PARTNER" th:selected="${selectedType == 'PARTNER'}">Partner</option>
+                            <option value="KUNDE" th:selected="${selectedType == 'KUNDE'}">Kunden</option>
+                            <option value="DIENSTLEISTER" th:selected="${selectedType == 'DIENSTLEISTER'}">Dienstleister</option>
+                        </select>
+                    </div>
                     <div class="form-group flex-grow">
                         <input type="text" name="search" class="form-control" 
                                placeholder="Unternehmensname suchen..." th:value="${searchTerm}">
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Suchen</button>
-                        <a th:if="${searchTerm != null and !searchTerm.isEmpty()}" 
+                        <a th:if="${searchTerm != null and !searchTerm.isEmpty() or (selectedType != null and selectedType != '')}" 
                            th:href="@{/companies}" class="btn btn-secondary">Zurücksetzen</a>
                     </div>
                 </div>
@@ -80,10 +92,10 @@
                                 </div>
                             </div>
                             
-                            <!-- Personel Combobox -->
+                            <!-- Kontakte-Combobox -->
                             <div class="format-combobox">
                                 <button type="button" class="combobox-button" onclick="toggleCombobox('contact')">
-                                    <span id="contact-combobox-label">Personal: Keine Auswahl</span>
+                                    <span id="contact-combobox-label">Kontakte: Keine Auswahl</span>
                                     <span class="combobox-arrow">▼</span>
                                 </button>
                                 <div id="contact-combobox-dropdown" class="combobox-dropdown" style="display: none;">
@@ -392,11 +404,11 @@
                 // Label'ı güncelle
                 const label = document.getElementById('contact-combobox-label');
                 if (selectedFields.length === 0) {
-                    label.textContent = 'Personal: Keine Auswahl';
+                    label.textContent = 'Kontakte: Keine Auswahl';
                 } else if (alleCheckbox.checked) {
-                    label.textContent = 'Personal: Alle';
+                    label.textContent = 'Kontakte: Alle';
                 } else {
-                    label.textContent = 'Personal: ' + selectedFields.length + ' ausgewählt';
+                    label.textContent = 'Kontakte: ' + selectedFields.length + ' ausgewählt';
                 }
                 
                 updateFormatJSON();

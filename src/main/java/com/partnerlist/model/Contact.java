@@ -37,6 +37,9 @@ public class Contact {
     
     @Column(columnDefinition = "TEXT")
     private String address; // Adress (şube için)
+
+    @Column(columnDefinition = "TEXT")
+    private String comment; // Kommentar
     
     @Column(name = "number")
     private Integer number; // Nr.
@@ -129,6 +132,14 @@ public class Contact {
     
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
     
     public Integer getNumber() {

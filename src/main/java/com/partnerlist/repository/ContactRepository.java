@@ -1,6 +1,7 @@
 package com.partnerlist.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,13 @@ import com.partnerlist.model.Contact;
 public interface ContactRepository extends JpaRepository<Contact, Long> {
     
     List<Contact> findByCompany_Id(Long companyId);
+    
+    @Query("SELECT c.address FROM Contact c WHERE c.id = :id")
+    Optional<String> findAddressById(@Param("id") Long id);
+
+    /** Adresi doğrudan veritabanından okur (entity/hibernate yüklemesinden bağımsız). */
+    @Query(value = "SELECT address FROM contacts WHERE id = :id", nativeQuery = true)
+    Optional<String> findAddressByIdNative(@Param("id") Long id);
     
     @Query("SELECT c FROM Contact c WHERE " +
            "LOWER(TRIM(COALESCE(c.personName, ''))) LIKE LOWER(CONCAT('%', :personName, '%'))")

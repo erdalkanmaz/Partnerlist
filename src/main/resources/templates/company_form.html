@@ -14,10 +14,22 @@
                         <label class="form-label">Unternehmensname *</label>
                         <input type="text" name="name" class="form-control" th:value="${company != null ? company.name : ''}" required>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Unternehmensgruppe</label>
+                        <input type="text" class="form-control" readonly
+                               th:value="${(company != null and company.companyType == T(com.partnerlist.model.CompanyType).KUNDE) ? 'Kunde' : ((company != null and company.companyType == T(com.partnerlist.model.CompanyType).DIENSTLEISTER) ? 'Dienstleister' : 'Partner')}">
+                        <!-- Technischer Wert für die Speicherung -->
+                        <input type="hidden" name="companyType"
+                               th:value="${company != null && company.companyType != null ? company.companyType : T(com.partnerlist.model.CompanyType).PARTNER}">
+                    </div>
                     
                     <div class="form-group">
                         <label class="form-label">Webadresse *</label>
-                        <input type="url" name="webUrl" class="form-control" th:value="${company != null ? company.webUrl : ''}" required>
+                        <input type="text" name="webUrl" class="form-control"
+                               th:value="${company != null ? company.webUrl : ''}"
+                               placeholder="z.B. https://www.beispiel.de" required>
+                        <small class="form-hint">Wenn kein „http://“ oder „https://“ angegeben ist, wird „https://“ automatisch ergänzt.</small>
                     </div>
                     
                     <div class="form-group">
@@ -120,6 +132,11 @@
                             <small class="form-hint">Wenn leer gelassen, wird die Unternehmensadresse verwendet</small>
                             <textarea name="contactAddress" class="form-control" rows="3"></textarea>
                         </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Kommentar</label>
+                            <textarea name="contactComment" class="form-control" rows="3"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -196,7 +213,7 @@
         </script>
         
         <script>
-            // Form gönderilmeden önce e-posta alanlarını trim et
+            // Form gönderilmeden önce e-posta ve Webadresse alanlarını trim et / normalleştir
             document.addEventListener('DOMContentLoaded', function() {
                 const form = document.querySelector('.main-form');
                 if (form) {
@@ -209,6 +226,15 @@
                         const contactEmailInput = form.querySelector('input[name="contactEmail"]');
                         if (contactEmailInput && contactEmailInput.value) {
                             contactEmailInput.value = contactEmailInput.value.trim();
+                        }
+
+                        const webInput = form.querySelector('input[name="webUrl"]');
+                        if (webInput && webInput.value) {
+                            let url = webInput.value.trim();
+                            if (url && !url.toLowerCase().startsWith('http://') && !url.toLowerCase().startsWith('https://')) {
+                                url = 'https://' + url;
+                            }
+                            webInput.value = url;
                         }
                     });
                 }

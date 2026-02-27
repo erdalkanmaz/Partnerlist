@@ -31,26 +31,42 @@ public class CompanyController {
     
     @GetMapping
     public String list(@RequestParam(required = false) String search,
+                       @RequestParam(required = false) String type,
                        Model model) {
         List<Company> companies;
-
+        
         if (search != null && !search.trim().isEmpty()) {
             companies = companyService.searchByName(search.trim());
         } else {
             companies = companyService.findAll();
         }
 
+        // Nach Unternehmensgruppe filtern (optional)
+        com.partnerlist.model.CompanyType filterType = parseCompanyType(type);
+        if (filterType != null) {
+            companies = companies.stream()
+                    .filter(c -> c.getCompanyType() == filterType)
+                    .toList();
+        }
+        
         // Kontakte laden (Lazy Loading auslösen)
         companies.forEach(comp -> comp.getContacts().size());
-
+        
         model.addAttribute("companies", companies);
         model.addAttribute("searchTerm", search);
+        model.addAttribute("selectedType", filterType != null ? filterType.name() : "");
         return "companies";
     }
     
     @GetMapping("/add")
-    public String showAddForm(Model model) {
-        model.addAttribute("company", new Company());
+    public String showAddForm(@RequestParam(required = false) String type,
+                              Model model) {
+        Company company = new Company();
+        com.partnerlist.model.CompanyType presetType = parseCompanyType(type);
+        if (presetType != null) {
+            company.setCompanyType(presetType);
+        }
+        model.addAttribute("company", company);
         return "company_form";
     }
     
@@ -64,9 +80,20 @@ public class CompanyController {
                       @RequestParam(required = false) String contactFax,
                       @RequestParam(required = false) String contactEmail,
                       @RequestParam(required = false) String contactAddress,
+                      @RequestParam(required = false) String contactComment,
                       @RequestParam(value = "duplicateWarningShown", required = false) Boolean duplicateWarningShown,
                       Model model,
                       RedirectAttributes redirectAttributes) {
+        // Webadresse normalisieren (Schema ergänzen) und E-Mail trimmen
+        if (company.getWebUrl() != null) {
+            String web = company.getWebUrl().trim();
+            if (!web.isEmpty() &&
+                !web.toLowerCase().startsWith("http://") &&
+                !web.toLowerCase().startsWith("https://")) {
+                web = "https://" + web;
+            }
+            company.setWebUrl(web);
+        }
         // E-posta alanını trim et (başta/sonda boşlukları temizle)
         if (company.getEmail() != null) {
             company.setEmail(company.getEmail().trim());
@@ -118,7 +145,8 @@ public class CompanyController {
                 (contactPersonName != null && !contactPersonName.isBlank()) ||
                 (contactTelephone != null && !contactTelephone.isBlank()) ||
                 (contactEmail != null && !contactEmail.isBlank()) ||
-                (contactAddress != null && !contactAddress.isBlank());
+                (contactAddress != null && !contactAddress.isBlank()) ||
+                (contactComment != null && !contactComment.isBlank());
 
         if (hasContactData) {
             Contact contact = new Contact();
@@ -140,6 +168,10 @@ public class CompanyController {
                 contact.setAddress(contactAddress);
             } else {
                 contact.setAddress(company.getAddress());
+            }
+
+            if (contactComment != null && !contactComment.isBlank()) {
+                contact.setComment(contactComment.trim());
             }
 
             contactService.save(contact);
@@ -183,7 +215,20 @@ public class CompanyController {
         
         Company updated = existing.get();
         updated.setName(company.getName());
-        updated.setWebUrl(company.getWebUrl());
+        // Webadresse normalisieren (Schema ergänzen)
+        if (company.getWebUrl() != null) {
+            String web = company.getWebUrl().trim();
+            if (!web.isEmpty() &&
+                !web.toLowerCase().startsWith("http://") &&
+                !web.toLowerCase().startsWith("https://")) {
+                web = "https://" + web;
+            }
+            updated.setWebUrl(web);
+        } else {
+            updated.setWebUrl(null);
+        }
+        // Unternehmensgruppe aktualisieren (Standard: PARTNER wenn nichts gesetzt)
+        updated.setCompanyType(company.getCompanyType());
         
         // E-posta alanını trim et (başta/sonda boşlukları temizle)
         if (company.getEmail() != null) {
@@ -203,6 +248,17 @@ public class CompanyController {
         redirectAttributes.addFlashAttribute("message", "Unternehmen wurde erfolgreich aktualisiert.");
         redirectAttributes.addFlashAttribute("messageType", "success");
         return "redirect:/companies/" + id;
+    }
+
+    private com.partnerlist.model.CompanyType parseCompanyType(String type) {
+        if (type == null || type.isBlank()) {
+            return null;
+        }
+        try {
+            return com.partnerlist.model.CompanyType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
     
     @PostMapping("/{id}/delete")

@@ -48,6 +48,10 @@
                             <th>Adresse:</th>
                             <td th:text="${contact.address != null ? contact.address : contact.company.address}"></td>
                         </tr>
+                        <tr th:if="${contact.comment != null}">
+                            <th>Kommentar:</th>
+                            <td th:text="${contact.comment}"></td>
+                        </tr>
                     </table>
                 </div>
             </div>

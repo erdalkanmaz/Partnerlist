@@ -3,6 +3,8 @@ package com.partnerlist.controller;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,9 +30,13 @@ public class ContactController {
     @Autowired
     private CompanyService companyService;
     
+    @Autowired
+    private com.partnerlist.service.ContactAddressReaderService contactAddressReader;
+    
     @GetMapping("/add")
     public String showAddForm(@RequestParam(required = false) String companyId, Model model) {
         model.addAttribute("contact", new Contact());
+        model.addAttribute("contactAddress", "");
         model.addAttribute("companies", companyService.findAll());
 
         if (companyId != null && !companyId.isBlank() && !"null".equalsIgnoreCase(companyId)) {
@@ -106,6 +112,7 @@ public class ContactController {
                 }
                 
                 model.addAttribute("contact", contact);
+                model.addAttribute("contactAddress", contact.getAddress() != null ? contact.getAddress() : "");
                 model.addAttribute("companies", companyService.findAll());
                 model.addAttribute("selectedCompanyId", companyIdLong);
                 model.addAttribute("duplicateContacts", duplicates);
@@ -124,11 +131,16 @@ public class ContactController {
     
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
+        // Adres her zaman JDBC ile okunur; Contact entity kullanılmaz. Sebep: SQLite/JPA ile
+        // satırda email=null iken entity'de address alanı yanlışlıkla null geliyor (sürücü/diyalekt davranışı).
+        String contactAddress = contactAddressReader.getAddressByContactId(id);
         Optional<Contact> contact = contactService.findById(id);
         if (contact.isEmpty()) {
             return "redirect:/companies";
         }
-        model.addAttribute("contact", contact.get());
+        Contact c = contact.get();
+        model.addAttribute("contact", c);
+        model.addAttribute("contactAddress", contactAddress != null ? contactAddress : "");
         model.addAttribute("companies", companyService.findAll());
         return "contact_form";
     }
@@ -169,6 +181,7 @@ public class ContactController {
         updated.setTitle(contact.getTitle());
         updated.setTelephone(contact.getTelephone());
         updated.setFax(contact.getFax());
+        updated.setComment(contact.getComment());
         
         // E-Mail-Feld trimmen (Leerzeichen am Anfang/Ende entfernen)
         if (contact.getEmail() != null) {
@@ -177,7 +190,14 @@ public class ContactController {
             updated.setEmail(null);
         }
         
-        updated.setAddress(contact.getAddress());
+        // Adres: Form boş gönderildiyse mevcut adresi koru (gösterim hatası nedeniyle kayıp önleme)
+        String submittedAddress = contact.getAddress();
+        if (submittedAddress != null && !submittedAddress.isBlank()) {
+            updated.setAddress(submittedAddress.trim());
+        } else {
+            String currentAddress = contactAddressReader.getAddressByContactId(id);
+            updated.setAddress(currentAddress != null && !currentAddress.isBlank() ? currentAddress : null);
+        }
         updated.setNumber(contact.getNumber());
         
         contactService.save(updated);
@@ -186,6 +206,24 @@ public class ContactController {
         return "redirect:/companies/" + companyIdLong;
     }
     
+    /** Adres metni; ?debug=1 ile satırdaki sütun adları ve adres değeri döner (Sorun giderme). */
+    @GetMapping(value = "/{id}/address", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getContactAddress(
+            @PathVariable Long id,
+            @RequestParam(value = "debug", required = false) String debug) {
+        try {
+            String address = contactAddressReader.getAddressByContactId(id);
+            if ("1".equals(debug)) {
+                String debugInfo = contactAddressReader.getAddressDebugInfo(id);
+                return ResponseEntity.ok().body(debugInfo);
+            }
+            String body = (address != null && !address.isBlank()) ? address : "(leer)";
+            return ResponseEntity.ok().body(body);
+        } catch (Exception e) {
+            return ResponseEntity.ok().body("Fehler: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         Optional<Contact> contact = contactService.findById(id);

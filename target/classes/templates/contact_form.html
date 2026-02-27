@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${contact != null ? 'Personal bearbeiten' : 'Neues Personal hinzufügen'}, content=~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{base :: layout(title=${contact != null ? 'Kontakt bearbeiten' : 'Neuen Kontakt hinzufügen'}, content=~{::content})}">
 <body>
     <th:block th:fragment="content">
         <div class="form-page">
-            <h1 th:text="${contact != null and contact.id != null ? 'Personal bearbeiten' : 'Neues Personal hinzufügen'}"></h1>
+            <h1 th:text="${contact != null and contact.id != null ? 'Kontakt bearbeiten' : 'Neuen Kontakt hinzufügen'}"></h1>
             
-            <form method="POST" th:action="${contact != null and contact.id != null ? '/contacts/' + contact.id + '/edit' : '/contacts/add'}" class="main-form" id="contact-form">
+            <form method="POST" th:action="${contact != null and contact.id != null ? '/contacts/' + contact.id + '/edit' : '/contacts/add'}" class="main-form" id="contact-form" th:attr="data-contact-id=${contact != null and contact.id != null ? contact.id : null}">
                 <input type="hidden" name="duplicateWarningShown" th:value="${duplicateWarningShown}">
                 <div class="form-section">
                     <h2>Unternehmensauswahl</h2>
@@ -72,7 +72,15 @@
                     <div class="form-group">
                         <label class="form-label">Adresse</label>
                         <small class="form-hint">Wenn leer gelassen, wird die Unternehmensadresse verwendet</small>
-                        <textarea name="address" class="form-control" rows="3" th:text="${contact != null ? contact.address : ''}"></textarea>
+                        <!-- In Elements: nach "initial-contact-address" suchen (mit zwei d) -->
+                        <input type="hidden" id="initial-contact-address" th:value="${contactAddress != null ? contactAddress : ''}">
+                        <textarea name="address" id="contact-address-field" class="form-control" rows="3" placeholder=""></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Kommentar</label>
+                        <textarea name="comment" class="form-control" rows="3"
+                                  th:text="${contact != null && contact.comment != null ? contact.comment : ''}"></textarea>
                     </div>
                 </div>
                 
@@ -157,7 +165,6 @@
         </script>
         
         <script>
-            // Form gönderilmeden önce e-posta alanlarını trim et
             document.addEventListener('DOMContentLoaded', function() {
                 const form = document.querySelector('.main-form');
                 if (form) {
@@ -167,6 +174,37 @@
                             emailInput.value = emailInput.value.trim();
                         }
                     });
+                }
+                var addressField = document.getElementById('contact-address-field');
+                if (!addressField) return;
+                // Bearbeitung: Adresse per AJAX vom Endpoint holen (unabhängig von Thymeleaf)
+                var contactId = form && form.getAttribute('data-contact-id');
+                if (contactId) {
+                    fetch('/contacts/' + contactId + '/address')
+                        .then(function(r) { return r.text(); })
+                        .then(function(text) {
+                            if (text && text !== '(leer)' && text.indexOf('Fehler:') !== 0) {
+                                addressField.value = text;
+                            } else if (text === '(leer)') {
+                                addressField.value = '';
+                            } else {
+                                var initialAddress = document.getElementById('initial-contact-address');
+                                if (initialAddress && initialAddress.value) {
+                                    addressField.value = initialAddress.value;
+                                }
+                            }
+                        })
+                        .catch(function() {
+                            var initialAddress = document.getElementById('initial-contact-address');
+                            if (initialAddress && addressField) {
+                                addressField.value = initialAddress.value || '';
+                            }
+                        });
+                } else {
+                    var initialAddress = document.getElementById('initial-contact-address');
+                    if (initialAddress) {
+                        addressField.value = initialAddress.value || '';
+                    }
                 }
             });
         </script>

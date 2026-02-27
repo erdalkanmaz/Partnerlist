@@ -9,6 +9,8 @@ import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -30,6 +32,10 @@ public class Company {
     
     @Column(name = "web_url", nullable = false, length = 500)
     private String webUrl; // Web
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "company_type", length = 20)
+    private CompanyType companyType; // PARTNER / KUNDE / DIENSTLEISTER
     
     @Column(length = 100)
     private String telephone; // Firmen-Telefon
@@ -65,6 +71,9 @@ public class Company {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (companyType == null) {
+            companyType = CompanyType.PARTNER;
+        }
     }
     
     @PreUpdate
@@ -175,5 +184,14 @@ public class Company {
     
     public void setContacts(List<Contact> contacts) {
         this.contacts = contacts;
+    }
+
+    public CompanyType getCompanyType() {
+        // Ältere Datensätze haben evtl. noch keinen Typ -> als PARTNER behandeln
+        return companyType != null ? companyType : CompanyType.PARTNER;
+    }
+
+    public void setCompanyType(CompanyType companyType) {
+        this.companyType = companyType;
     }
 }

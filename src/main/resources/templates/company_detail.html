@@ -16,6 +16,10 @@
                 <div class="info-section">
                     <h2>Unternehmensinformationen</h2>
                     <table class="info-table">
+                        <tr>
+                            <th>Unternehmensgruppe:</th>
+                            <td th:text="${company.companyType == T(com.partnerlist.model.CompanyType).KUNDE ? 'Kunde' : (company.companyType == T(com.partnerlist.model.CompanyType).DIENSTLEISTER ? 'Dienstleister' : 'Partner')}"></td>
+                        </tr>
                         <tr th:if="${company.telephone != null}">
                             <th>Telefon:</th>
                             <td th:text="${company.telephone}"></td>
@@ -28,9 +32,13 @@
                             <th>E-Mail:</th>
                             <td th:text="${company.email}"></td>
                         </tr>
-                        <tr>
+                        <tr th:if="${company.webUrl != null}">
                             <th>Webadresse:</th>
-                            <td><a th:href="${company.webUrl}" th:text="${company.webUrl}" target="_blank"></a></td>
+                            <td>
+                                <a th:href="${#strings.startsWith(#strings.toLowerCase(company.webUrl), 'http://') or #strings.startsWith(#strings.toLowerCase(company.webUrl), 'https://') ? company.webUrl : 'https://' + company.webUrl}"
+                                   th:text="${company.webUrl}"
+                                   target="_blank"></a>
+                            </td>
                         </tr>
                         <tr>
                             <th>Adresse:</th>
@@ -54,8 +62,8 @@
             
             <div class="contacts-section">
                 <div class="section-header">
-                    <h2>Personal (<span th:text="${company.contacts != null ? company.contacts.size() : 0}"></span>)</h2>
-                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Neues Personal hinzufügen</a>
+                    <h2>Kontakte (<span th:text="${company.contacts != null ? company.contacts.size() : 0}"></span>)</h2>
+                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Neuen Kontakt hinzufügen</a>
                 </div>
                 
                 <div th:if="${company.contacts != null and !company.contacts.isEmpty()}">
@@ -69,6 +77,7 @@
                                 <th>Fax</th>
                                 <th>E-Mail</th>
                                 <th>Adresse</th>
+                                <th>Kommentar</th>
                                 <th>Aktionen</th>
                             </tr>
                         </thead>
@@ -80,7 +89,8 @@
                                 <td th:text="${contact.telephone != null ? contact.telephone : '-'}"></td>
                                 <td th:text="${contact.fax != null ? contact.fax : '-'}"></td>
                                 <td th:text="${contact.email != null ? contact.email : '-'}"></td>
-                                <td th:text="${contact.address != null ? contact.address : company.address}"></td>
+                                <td th:text="${contact.address != null and !contact.address.isBlank() ? contact.address : '–'}"></td>
+                                <td th:text="${contact.comment != null ? contact.comment : ''}"></td>
                                 <td>
                                     <a th:href="@{/contacts/{id}/edit(id=${contact.id})}" class="btn btn-sm btn-warning">Bearbeiten</a>
                                     <form method="POST" th:action="@{/contacts/{id}/delete(id=${contact.id})}" 
@@ -94,8 +104,8 @@
                 </div>
                 
                 <div th:if="${company.contacts == null or company.contacts.isEmpty()}" class="empty-state">
-                    <p>Keine Personalaufzeichnungen für dieses Unternehmen vorhanden.</p>
-                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Erstes Personal hinzufügen</a>
+                    <p>Keine Kontakte für dieses Unternehmen vorhanden.</p>
+                    <a th:href="@{/contacts/add?companyId={id}(id=${company.id})}" class="btn btn-primary">Ersten Kontakt hinzufügen</a>
                 </div>
             </div>
         </div>

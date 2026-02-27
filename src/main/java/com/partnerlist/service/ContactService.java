@@ -26,6 +26,11 @@ public class ContactService {
         return contactRepository.findById(id);
     }
     
+    /** Adres alanını entity'den bağımsız, doğrudan veritabanından native query ile okur. */
+    public String getAddressByContactId(Long id) {
+        return contactRepository.findAddressByIdNative(id).orElse("");
+    }
+    
     public Contact save(Contact contact) {
         return contactRepository.save(contact);
     }

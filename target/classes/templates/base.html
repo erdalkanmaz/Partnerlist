@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title != null ? title : 'Partnerliste Verwaltung'}">Partnerliste Verwaltung</title>
+    <title th:text="${title != null ? title : 'Unternehmensliste Verwaltung'}">Unternehmensliste Verwaltung</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <th:block th:fragment="extra_css"></th:block>
 </head>
@@ -15,7 +15,7 @@
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <meta name="_csrf" th:content="${_csrf?.token}">
             <meta name="_csrf_header" th:content="${_csrf?.headerName}">
-            <title th:text="${title}">Partnerliste Verwaltung</title>
+            <title th:text="${title}">Unternehmensliste Verwaltung</title>
             <link rel="stylesheet" th:href="@{/css/style.css}">
             <th:block th:replace="~{base :: extra_css}"></th:block>
         </head>
@@ -34,10 +34,10 @@
     <th:block th:fragment="navbar">
         <nav class="navbar">
             <div class="nav-container">
-                <a th:href="@{/}" class="nav-logo">Partnerliste</a>
+                <span class="nav-logo" style="cursor: default;">Unternehmensliste</span>
                 <ul class="nav-menu">
                     <li><a th:href="@{/}">Startseite</a></li>
-                    <li><a th:href="@{/companies}">Unternehmensliste</a></li>
+                    <li><a th:href="@{/companies}">Liste</a></li>
                     <li><a th:href="@{/search}">Suche</a></li>
                     <li><a th:href="@{/import}">Excel Import</a></li>
                     <li>

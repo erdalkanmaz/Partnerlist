@@ -12,7 +12,7 @@
                             <select name="field" class="form-control">
                                 <option value="all" th:selected="${searchField == 'all'}">Alle</option>
                                 <option value="company_name" th:selected="${searchField == 'company_name'}">Unternehmensname</option>
-                                <option value="person_name" th:selected="${searchField == 'person_name'}">Personalname</option>
+                                <option value="person_name" th:selected="${searchField == 'person_name'}">Kontaktname</option>
                                 <option value="email" th:selected="${searchField == 'email'}">E-Mail</option>
                                 <option value="telephone" th:selected="${searchField == 'telephone'}">Telefon</option>
                                 <option value="address" th:selected="${searchField == 'address'}">Adresse</option>
@@ -47,7 +47,7 @@
                 
                 <div th:if="${contacts != null and !contacts.isEmpty()}">
                     <div class="result-section">
-                        <h2>Personal (<span th:text="${contacts.size()}"></span>)</h2>
+                        <h2>Kontakte (<span th:text="${contacts.size()}"></span>)</h2>
                         <table class="data-table">
                             <thead>
                                 <tr>
